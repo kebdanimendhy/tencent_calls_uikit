@@ -10,8 +10,10 @@ import 'package:tencent_calls_uikit/src/data/user.dart';
 import 'package:tencent_calls_uikit/src/extensions/calling_bell_feature.dart';
 import 'package:tencent_calls_uikit/src/extensions/trtc_logger.dart';
 import 'package:tencent_calls_uikit/src/i18n/i18n_utils.dart';
+import 'package:tencent_calls_uikit/src/impl/call_state_custom.dart';
 import 'package:tencent_calls_uikit/src/platform/call_engine_platform_interface.dart';
 import 'package:tencent_calls_uikit/src/platform/call_kit_platform_interface.dart';
+import 'package:tencent_calls_uikit/src/ui/call_common_builder.dart';
 import 'package:tencent_calls_uikit/src/utils/preference.dart';
 import 'package:tencent_calls_uikit/src/utils/string_stream.dart';
 import 'package:tencent_cloud_chat_sdk/tencent_im_sdk_plugin.dart';
@@ -28,6 +30,8 @@ class CallState {
     init();
   }
 
+  CallCommonBuilders builders = CallCommonBuilders();
+  CallStateCustom? stateCustom;
   User selfUser = User();
   User caller = User();
   List<User> calleeList = [];
@@ -519,6 +523,8 @@ class CallState {
 
     CallState.instance.isChangedBigSmallVideo = false;
     CallState.instance.enableBlurBackground = false;
+
+    CallState.instance.stateCustom?.cleanState();
   }
 
   bool isBadNetwork(TUINetworkQuality quality)  {

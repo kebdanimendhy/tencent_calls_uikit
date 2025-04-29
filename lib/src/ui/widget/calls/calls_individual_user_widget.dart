@@ -115,29 +115,32 @@ class _CallsIndividualUserWidgetState extends State<CallsIndividualUserWidget> {
       avatar = StringStream.makeNull(
           CallState.instance.remoteUserList[0].avatar, Constants.defaultAvatar);
     }
-
+    final avatarBuiler = CallState.instance.builders.individualUserWaitingUserAvatarBuilder;
+    final descBuidler = CallState.instance.builders.individualUserWaitingDescBuilder;
     final userInfoWidget = Positioned(
         top: MediaQuery.of(context).size.height / 4,
         width: MediaQuery.of(context).size.width,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              height: 110,
-              width: 110,
-              clipBehavior: Clip.hardEdge,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-              ),
-              child: Image(
-                image: NetworkImage(avatar),
-                fit: BoxFit.cover,
-                errorBuilder: (ctx, err, stackTrace) => Image.asset(
-                  'assets/images/user_icon.png',
-                  package: 'tencent_calls_uikit',
-                ),
-              ),
-            ),
+            avatarBuiler != null
+                ? avatarBuiler(avatar)
+                : Container(
+                    height: 110,
+                    width: 110,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                    child: Image(
+                      image: NetworkImage(avatar),
+                      fit: BoxFit.cover,
+                      errorBuilder: (ctx, err, stackTrace) => Image.asset(
+                        'assets/images/user_icon.png',
+                        package: 'tencent_calls_uikit',
+                      ),
+                    ),
+                  ),
             const SizedBox(height: 20),
             Text(
               showName,
@@ -148,6 +151,7 @@ class _CallsIndividualUserWidgetState extends State<CallsIndividualUserWidget> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            if (descBuidler != null) descBuidler(),
           ],
         ));
 

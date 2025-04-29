@@ -247,6 +247,15 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildVideoCallerWaitingView(Function close) {
+    final builder = CallState.instance.builders.videoCallerWaitingViewBuilder;
+    if (builder != null) {
+      return builder(
+        handleSwitchCamera: _handleSwitchCamera,
+        handleHangup: () => _handleHangUp(close),
+        handleOpenCloseCamera: _handleOpenCloseCamera,
+        handleOpenBlurBackground: _handleOpenBlurBackground,
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -260,6 +269,15 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildVBgVideoCallerWaitingView(Function close) {
+    final builder = CallState.instance.builders.videoCallerWaitingViewBuilder;
+    if (builder != null) {
+      return builder(
+        handleSwitchCamera: _handleSwitchCamera,
+        handleHangup: _handleHangUp(close),
+        handleOpenCloseCamera: _handleOpenCloseCamera,
+        handleOpenBlurBackground: _handleOpenBlurBackground,
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -291,6 +309,17 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildVideoCallerAndCalleeAcceptedView(Function close) {
+    final builder = CallState.instance.builders.videoCallerAndCalleeAcceptedViewBuilder;
+    if (builder != null) {
+      return builder(
+        handleSwitchMic: _handleSwitchMic,
+        handleSwitchAudioDevice: _handleSwitchAudioDevice,
+        handleOpenCloseCamera: _handleOpenCloseCamera,
+        handleHangup: () => _handleHangUp(close),
+        handleOpenBlurBackground: _handleOpenBlurBackground,
+        handleSwitchCamera: _handleSwitchCamera,
+      );
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
@@ -323,30 +352,44 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildAudioAndVideoCalleeWaitingView(Function close) {
+    final ex = CallState.instance.builders;
+    final builder = ex.calleeWaitingViewBuilder;
+    if (builder != null) {
+      return builder(
+        handleReject: () => _handleReject(close),
+        handleAccept: _handleAccept,
+      );
+    }
+    final hangupBuilder = ex.calleeWaitingHangupButtonBuilder;
+    final acceptBuilder = ex.calleeWaitingAcceptButtonBuilder;
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            ExtendButton(
-              imgUrl: "assets/images/hangup.png",
-              tips: CallKit_t("hangUp"),
-              textColor: _getTextColor(),
-              imgHeight: 60,
-              onTap: () {
-                _handleReject(close);
-              },
-            ),
-            ExtendButton(
-              imgUrl: "assets/images/dialing.png",
-              tips: CallKit_t("accept"),
-              textColor: _getTextColor(),
-              imgHeight: 60,
-              onTap: () {
-                _handleAccept();
-              },
-            ),
+            hangupBuilder != null
+                ? hangupBuilder(() => _handleReject(close))
+                : ExtendButton(
+                    imgUrl: "assets/images/hangup.png",
+                    tips: CallKit_t("hangUp"),
+                    textColor: _getTextColor(),
+                    imgHeight: 60,
+                    onTap: () {
+                      _handleReject(close);
+                    },
+                  ),
+            acceptBuilder != null
+                ? acceptBuilder(_handleAccept)
+                : ExtendButton(
+                    imgUrl: "assets/images/dialing.png",
+                    tips: CallKit_t("accept"),
+                    textColor: _getTextColor(),
+                    imgHeight: 60,
+                    onTap: () {
+                      _handleAccept();
+                    },
+                  ),
           ],
         )
       ],
@@ -375,6 +418,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildSpeakerphoneButton() {
+    final builder = CallState.instance.builders.speakerphoneButtonBuidler;
+    if (builder != null) return builder(_handleSwitchAudioDevice);
     return ExtendButton(
       imgUrl: CallState.instance.audioDevice == TUIAudioPlaybackDevice.speakerphone
           ? "assets/images/handsfree_on.png"
@@ -391,6 +436,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildCameraControlButton() {
+    final builder = CallState.instance.builders.cameraControlButtonBuilder;
+    if (builder != null) return builder(_handleOpenCloseCamera);
     return ExtendButton(
       imgUrl: CallState.instance.isCameraOpen
           ? "assets/images/camera_on.png"
@@ -405,6 +452,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildMicControlButton() {
+    final builder = CallState.instance.builders.micControlButtonBuilder;
+    if (builder != null) return builder(_handleSwitchMic);
     return ExtendButton(
       imgUrl: CallState.instance.isMicrophoneMute
           ? "assets/images/mute_on.png"
@@ -421,6 +470,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildHangupButton(Function close) {
+    final builder = CallState.instance.builders.hangupButtonBuilder;
+    if (builder != null) return builder(() => _handleHangUp(close));
     return ExtendButton(
       imgUrl: "assets/images/hangup.png",
       tips: CallKit_t("hangUp"),
@@ -446,6 +497,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildVirtualBackgroundSmallButton() {
+    final builder = CallState.instance.builders.virtualBackgroundSmallButtonBuilder;
+    if (builder != null) return builder(_handleOpenBlurBackground);
     return ExtendButton(
       imgUrl: "assets/images/blur_background_accept.png",
       tips: '',
@@ -459,6 +512,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildVirtualBackgroundButton() {
+    final builder = CallState.instance.builders.virtualBackgroundButtonBuilder;
+    if (builder != null) return builder(_handleOpenBlurBackground);
     return ExtendButton(
       imgUrl: CallState.instance.enableBlurBackground
           ? "assets/images/blur_background_waiting_enable.png"
@@ -473,6 +528,8 @@ class CallsFunctionWidget {
   }
 
   static Widget _buildSwitchCameraButton() {
+    final builder = CallState.instance.builders.switchCameraButtonBuilder;
+    if (builder != null) return builder(_handleSwitchCamera);
     return ExtendButton(
       imgUrl: "assets/images/switch_camera_group.png",
       tips: CallKit_t("switchCamera"),
