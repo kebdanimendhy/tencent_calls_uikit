@@ -59,10 +59,11 @@ class CallState {
   bool enableIncomingBanner = false;
   bool isInNativeIncomingBanner = false;
 
-  final TUICallObserver observer = TUICallObserver(
+  late final TUICallObserver observer = TUICallObserver(
       onError: (int code, String message) {
         TRTCLogger.info('TUICallObserver onError(code:$code, message:$message)');
         CallManager.instance.showToast('Error: $code, $message');
+        stateCustom?.observer?.onError?.call(code, message);
       },
       onCallReceived: (String callId, String callerId, List<String> calleeIdList, TUICallMediaType mediaType, CallObserverExtraInfo info) async {
         TRTCLogger.info(
@@ -73,6 +74,7 @@ class CallState {
         await CallManager.instance.enableWakeLock(true);
         CallingBellFeature.startRing();
 
+        stateCustom?.observer?.onCallReceived?.call(callId, callerId, calleeIdList, mediaType, info);
         if (Platform.isIOS) {
           if (CallState.instance.enableIncomingBanner) {
             CallState.instance.isInNativeIncomingBanner = true;
@@ -112,6 +114,7 @@ class CallState {
         TUICore.instance.notifyEvent(setStateEventOnCallEnd);
         TUICallKitPlatform.instance.updateCallStateToNative();
         CallManager.instance.enableWakeLock(false);
+        stateCustom?.observer?.onCallNotConnected?.call(callId, mediaType, reason, userId, info);
       },
       onCallBegin: (String callId, TUICallMediaType mediaType, CallObserverExtraInfo info) {
         TRTCLogger.info(
@@ -135,6 +138,7 @@ class CallState {
         TUICore.instance.notifyEvent(setStateEvent);
         TUICore.instance.notifyEvent(setStateEventOnCallBegin);
         TUICallKitPlatform.instance.updateCallStateToNative();
+        stateCustom?.observer?.onCallBegin?.call(callId, mediaType, info);
       },
       onCallEnd: (String callId, TUICallMediaType mediaType, CallEndReason reason,
           String userId, double totalTime, CallObserverExtraInfo info) {
@@ -148,12 +152,14 @@ class CallState {
         TUICore.instance.notifyEvent(setStateEventOnCallEnd);
         TUICallKitPlatform.instance.updateCallStateToNative();
         CallManager.instance.enableWakeLock(false);
+        stateCustom?.observer?.onCallEnd?.call(callId, mediaType, reason, userId, totalTime, info);
       },
       onCallMediaTypeChanged:
           (TUICallMediaType oldCallMediaType, TUICallMediaType newCallMediaType) {
         CallState.instance.mediaType = newCallMediaType;
         TUICore.instance.notifyEvent(setStateEvent);
         TUICallKitPlatform.instance.updateCallStateToNative();
+        stateCustom?.observer?.onCallMediaTypeChanged?.call(oldCallMediaType, newCallMediaType);
       },
       onUserReject: (String userId) {
         TRTCLogger.info('TUICallObserver onUserReject(userId:$userId)');
@@ -174,6 +180,7 @@ class CallState {
         if (TUICallScene.singleCall == CallState.instance.scene) {
           CallManager.instance.showToast(CallKit_t('otherPartyDeclinedCallRequest'));
         }
+        stateCustom?.observer?.onUserReject?.call(userId);
       },
       onUserNoResponse: (String userId) {
         TRTCLogger.info('TUICallObserver onUserNoResponse(userId:$userId)');
@@ -195,6 +202,7 @@ class CallState {
         if (TUICallScene.singleCall == CallState.instance.scene) {
           CallManager.instance.showToast(CallKit_t('otherPartyNoResponse'));
         }
+        stateCustom?.observer?.onUserNoResponse?.call(userId);
       },
       onUserLineBusy: (String userId) {
         Timer.periodic(const Duration(milliseconds: 200), (timer) {
@@ -223,6 +231,7 @@ class CallState {
           }
           timer.cancel();
         });
+        stateCustom?.observer?.onUserLineBusy?.call(userId);
       },
       onUserJoin: (String userId) async {
         TRTCLogger.info('TUICallObserver onUserJoin(userId:$userId)');
@@ -253,6 +262,7 @@ class CallState {
         TUICore.instance.notifyEvent(setStateEvent);
 
         TUICallKitPlatform.instance.updateCallStateToNative();
+        stateCustom?.observer?.onUserJoin?.call(userId);
       },
       onUserLeave: (String userId) {
         TRTCLogger.info('TUICallObserver onUserLeave(userId:$userId)');
@@ -274,10 +284,12 @@ class CallState {
         if (TUICallScene.singleCall == CallState.instance.scene) {
           CallManager.instance.showToast(CallKit_t('otherPartyHungUp'));
         }
+        stateCustom?.observer?.onUserLeave?.call(userId);
       },
       onUserVideoAvailable: (String userId, bool isVideoAvailable) {
         TRTCLogger.info(
             'TUICallObserver onUserVideoAvailable(userId:$userId, isVideoAvailable:$isVideoAvailable)');
+        stateCustom?.observer?.onUserVideoAvailable?.call(userId, isVideoAvailable);
         for (var remoteUser in CallState.instance.remoteUserList) {
           if (remoteUser.id == userId) {
             remoteUser.videoAvailable = isVideoAvailable;
@@ -291,6 +303,7 @@ class CallState {
       onUserAudioAvailable: (String userId, bool isAudioAvailable) {
         TRTCLogger.info(
             'TUICallObserver onUserAudioAvailable(userId:$userId, isVideoAvailable:$isAudioAvailable)');
+        stateCustom?.observer?.onUserAudioAvailable?.call(userId, isAudioAvailable);
         for (var remoteUser in CallState.instance.remoteUserList) {
           if (remoteUser.id == userId) {
             remoteUser.audioAvailable = isAudioAvailable;
@@ -300,6 +313,7 @@ class CallState {
         }
       },
       onUserNetworkQualityChanged: (List<TUINetworkQualityInfo> networkQualityList) {
+        stateCustom?.observer?.onUserNetworkQualityChanged?.call(networkQualityList);
         if (networkQualityList.isEmpty) {
           return;
         }
@@ -357,6 +371,7 @@ class CallState {
           TUICallKitPlatform.instance.updateCallStateToNative();
           TUICore.instance.notifyEvent(setStateEvent);
         }
+        stateCustom?.observer?.onUserVoiceVolumeChanged?.call(volumeMap);
       },
       onKickedOffline: () {
         TRTCLogger.info('TUICallObserver onKickedOffline()');
@@ -365,6 +380,7 @@ class CallState {
         CallState.instance.cleanState();
         TUICore.instance.notifyEvent(setStateEvent);
         TUICallKitPlatform.instance.updateCallStateToNative();
+        stateCustom?.observer?.onKickedOffline?.call();
       },
       onUserSigExpired: () {
         TRTCLogger.info('TUICallObserver onUserSigExpired()');
@@ -373,6 +389,7 @@ class CallState {
         CallState.instance.cleanState();
         TUICore.instance.notifyEvent(setStateEvent);
         TUICallKitPlatform.instance.updateCallStateToNative();
+        stateCustom?.observer?.onUserSigExpired?.call();
       });
 
   void init() {
